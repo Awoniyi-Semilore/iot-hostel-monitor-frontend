@@ -31,8 +31,9 @@ export default function App() {
   const BASE_URL = "https://auracheck.fly.dev/api";
   const READINGS_URL = `${BASE_URL}/readings`;
   
-  // Multiple proxies to prevent "Failed to fetch" due to rate limits
+  // Expanded proxy list with direct access fallback
   const PROXIES = [
+    "DIRECT", // Try direct first as it's most reliable if CORS allows
     "https://api.allorigins.win/get?url=",
     "https://corsproxy.io/?",
     "https://thingproxy.freeboard.io/fetch/"
@@ -82,19 +83,25 @@ export default function App() {
     return () => clearInterval(timer);
   }, [maintenanceEndTime]);
 
-  const fetchData = async () => {
+  const fetchData = async (retryCount = 0) => {
     if (maintenanceEndTime && Date.now() < maintenanceEndTime) return;
 
     setLoading(true);
     const currentProxy = PROXIES[proxyIndex.current % PROXIES.length];
-    const targetUrl = `${currentProxy}${encodeURIComponent(READINGS_URL)}`;
+    const targetUrl = currentProxy === "DIRECT" 
+      ? `${READINGS_URL}?t=${Date.now()}` 
+      : `${currentProxy}${encodeURIComponent(READINGS_URL)}`;
 
     try {
-      const response = await fetch(targetUrl);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout
+
+      const response = await fetch(targetUrl, { signal: controller.signal });
+      clearTimeout(timeoutId);
+
       if (!response.ok) throw new Error(`Gateway Error: ${response.status}`);
       
       const wrapper = await response.json();
-      // Logic for different proxy response structures
       let rawData = wrapper.contents || wrapper;
       if (typeof rawData === 'string') rawData = JSON.parse(rawData);
       
@@ -134,23 +141,28 @@ export default function App() {
         throw new Error("No data in response.");
       }
     } catch (err) {
-      console.error("Fetch error:", err);
+      console.warn(`Fetch attempt ${retryCount + 1} failed:`, err.message);
       
-      // Rotate proxy for the next attempt
+      // Rotate proxy immediately
       proxyIndex.current += 1;
 
-      if (isBooting && bootAttempts.current < 12) { 
+      // Exponential backoff for retries (max 3 retries per interval)
+      if (retryCount < 3) {
+        const backoffDelay = Math.pow(2, retryCount) * 1000;
+        setTimeout(() => fetchData(retryCount + 1), backoffDelay);
+        return;
+      }
+
+      if (isBooting && bootAttempts.current < 15) { 
         bootAttempts.current += 1;
-        if (bootAttempts.current === 1) setBootMessage("Waking up Fly.io cloud servers...");
-        if (bootAttempts.current === 4) setBootMessage("Retrying via secondary gateway...");
-        if (bootAttempts.current === 8) setBootMessage("Establishing secure sensor uplink...");
+        setBootMessage(retryCount > 0 ? "Server warming up... trying new path" : "Synchronizing with JAJA Hall sensors...");
       } else if (!isBooting) {
         setIsLive(false);
-        setError("Telemetry interrupted. System attempting reconnect...");
+        setError("Network instability detected. Re-routing signal...");
       } else {
         setIsBooting(false);
         setIsLive(false);
-        setError("Critical Connection Failure. Check Backend Status.");
+        setError("Node offline. Backend handshake failed.");
       }
     } finally {
       setLoading(false);
@@ -159,7 +171,7 @@ export default function App() {
 
   useEffect(() => {
     fetchData(); 
-    const interval = setInterval(fetchData, 15000); 
+    const interval = setInterval(fetchData, 20000); // Slightly longer interval to avoid rate limits
     return () => clearInterval(interval);
   }, [currentPhase, isBooting]);
 
@@ -240,7 +252,7 @@ export default function App() {
                     </h2>
                   </div>
                 </div>
-                <button onClick={fetchData} className={`p-3 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors ${loading ? 'animate-spin' : ''}`}><RefreshCw size={18} /></button>
+                <button onClick={() => fetchData(0)} className={`p-3 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors ${loading ? 'animate-spin' : ''}`}><RefreshCw size={18} /></button>
               </div>
 
               <div className={`text-center py-12 px-8 rounded-[3.5rem] border shadow-2xl relative overflow-hidden transition-all duration-700 ${isMaintenance ? 'bg-purple-950/20 border-purple-500/20' : 'bg-slate-900/40 border-white/5'}`}>
@@ -290,7 +302,7 @@ export default function App() {
               )}
 
               {error && !isMaintenance && !isLive && (
-                <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-3xl flex gap-3 animate-in fade-in">
+                <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-3xl flex gap-3 animate-in fade-in text-left">
                   <AlertTriangle className="text-red-500 shrink-0" size={18} />
                   <p className="text-[10px] text-red-200/60 uppercase font-black tracking-widest leading-tight">{error}</p>
                 </div>
@@ -338,7 +350,7 @@ export default function App() {
       )}
 
       <div className="text-center opacity-40 py-8 relative z-10">
-        <p className="text-[10px] font-black uppercase tracking-[0.5em] mb-2">Designed & Engineered by Group 7 students for CSC419 Project</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.5em] mb-2">Designed & Engineered by Group 7 students</p>
         <p className="text-[9px] font-mono text-slate-400">Unilag Smart Campus Initiative • v3.6</p>
       </div>
     </div>
