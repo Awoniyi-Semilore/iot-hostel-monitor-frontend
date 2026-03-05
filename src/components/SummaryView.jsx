@@ -1,48 +1,88 @@
-import { AlertTriangle, Cpu, Database, Smartphone, Sparkles } from 'lucide-react';
+import { AlertTriangle, Cpu, Server, MessageSquare, ShieldCheck } from 'lucide-react';
+
+const STACK = [
+  {
+    icon: Cpu,
+    color: 'text-indigo-400',
+    title: 'Hardware',
+    body: 'NodeMCU ESP8266 paired with an MQ-135 gas sensor. Reads NH3/ammonia concentration every ~30 seconds and pushes readings to the cloud API over Wi-Fi.',
+  },
+  {
+    icon: Server,
+    color: 'text-emerald-400',
+    title: 'Backend',
+    body: 'Express.js + TypeScript on Fly.io, backed by PostgreSQL. Classifies readings as Fresh (<400 PPM), Moderate (400–699 PPM), or Critical (≥700 PPM).',
+  },
+  {
+    icon: MessageSquare,
+    color: 'text-orange-400',
+    title: 'SMS Alerts',
+    body: 'Twilio sends SMS to registered contacts when a Critical threshold is crossed. Contacts are scoped per location and managed directly from this app.',
+  },
+  {
+    icon: ShieldCheck,
+    color: 'text-purple-400',
+    title: 'Spray Override',
+    body: 'Triggering a spray override calls the backend to set a 45-minute cooldown. SMS alerts are suppressed during this window to avoid false positives from cleaning chemicals.',
+  },
+];
+
+const THRESHOLDS = [
+  { label: 'Fresh', range: '< 400 PPM', color: 'text-cyan-400', bg: 'bg-cyan-500/10 border-cyan-500/20' },
+  { label: 'Moderate', range: '400 – 699 PPM', color: 'text-orange-400', bg: 'bg-orange-500/10 border-orange-500/20' },
+  { label: 'Critical', range: '≥ 700 PPM', color: 'text-red-400', bg: 'bg-red-500/10 border-red-500/20' },
+];
 
 export default function SummaryView() {
   return (
-    <div className="max-w-3xl w-full space-y-12 animate-in slide-in-from-right-8 duration-500 pb-16 px-4">
-      <div className="text-center space-y-4">
-        <h2 className="text-5xl font-black italic uppercase tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
-          Project AuraCheck
-        </h2>
-        <p className="text-slate-400 font-bold uppercase tracking-[0.4em] text-[10px]">IoT Hygiene & Sanitation Architecture</p>
+    <div className="max-w-md w-full space-y-8 pb-16">
+
+      <div>
+        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">About</p>
+        <h1 className="text-2xl font-black italic uppercase tracking-tighter">Project AuraCheck</h1>
+        <p className="text-xs text-slate-500 mt-1">JAJA Hall · University of Lagos · Group 7</p>
       </div>
 
-      <div className="bg-slate-900/40 p-8 rounded-[3rem] border border-white/5 relative overflow-hidden">
-        <h3 className="flex items-center gap-3 font-black uppercase text-sm tracking-[0.2em] mb-4 text-blue-400">
-          <AlertTriangle size={18} /> The Catalyst
-        </h3>
-        <p className="text-sm text-slate-300 leading-relaxed font-medium">
-          AuraCheck addresses the reactive cleaning schedules in university hostels (e.g., JAJA Hall, Unilag).
-          By monitoring Ammonia (NH3) levels in real-time, it triggers cleaning based on actual usage rather
-          than fixed timetables, significantly improving sanitation and student health.
+      <div className="bg-slate-900/60 border border-white/5 rounded-3xl p-5">
+        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 flex items-center gap-2">
+          <AlertTriangle size={11} /> The Problem
+        </p>
+        <p className="text-sm text-slate-300 leading-relaxed">
+          University hostel bathrooms are cleaned on fixed schedules regardless of actual usage. AuraCheck monitors
+          NH3 (ammonia) levels in real-time and sends SMS alerts when conditions deteriorate, shifting maintenance
+          from time-based to need-based.
         </p>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
-        <div className="bg-white/5 p-8 rounded-[2.5rem] border border-white/5 space-y-4 hover:bg-white/10">
-          <Cpu size={28} className="text-indigo-400" />
-          <h3 className="font-black uppercase text-xs tracking-widest">Hardware</h3>
-          <p className="text-xs text-slate-400 leading-relaxed">NodeMCU + MQ-135 sensors push data via Wi-Fi to a cloud API every 15 seconds.</p>
-        </div>
-        <div className="bg-white/5 p-8 rounded-[2.5rem] border border-white/5 space-y-4 hover:bg-white/10">
-          <Database size={28} className="text-emerald-400" />
-          <h3 className="font-black uppercase text-xs tracking-widest">Logic</h3>
-          <p className="text-xs text-slate-400 leading-relaxed">FastAPI + PostgreSQL handles data ingestion and threshold alerts (Normal vs. Moderate vs. Critical).</p>
-        </div>
-        <div className="bg-white/5 p-8 rounded-[2.5rem] border border-white/5 space-y-4 hover:bg-white/10">
-          <Smartphone size={28} className="text-orange-400" />
-          <h3 className="font-black uppercase text-xs tracking-widest">Escalation</h3>
-          <p className="text-xs text-slate-400 leading-relaxed">SMS alerts go to cleaners; Critical levels lasting 15+ mins escalate to the Hall Mistress via Telegram.</p>
-        </div>
-        <div className="bg-white/5 p-8 rounded-[2.5rem] border border-white/5 space-y-4 hover:bg-white/10">
-          <Sparkles size={28} className="text-purple-400" />
-          <h3 className="font-black uppercase text-xs tracking-widest">Mitigation</h3>
-          <p className="text-xs text-slate-400 leading-relaxed">The "Spray Override" pauses sensors during cleaning to prevent false VOC alerts from chemicals.</p>
+      <div className="space-y-3">
+        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Thresholds</p>
+        <div className="grid grid-cols-3 gap-2">
+          {THRESHOLDS.map(({ label, range, color, bg }) => (
+            <div key={label} className={`border rounded-2xl p-3 text-center ${bg}`}>
+              <p className={`text-xs font-black ${color}`}>{label}</p>
+              <p className="text-[10px] text-white font-mono mt-1">{range}</p>
+            </div>
+          ))}
         </div>
       </div>
+
+      <div className="space-y-3">
+        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">How It Works</p>
+        <div className="space-y-2">
+          {STACK.map(({ icon: Icon, color, title, body }) => (
+            <div key={title} className="bg-slate-900/40 border border-white/5 rounded-2xl p-4 flex gap-4">
+              <Icon size={18} className={`${color} shrink-0 mt-0.5`} />
+              <div>
+                <p className="text-xs font-black uppercase tracking-widest mb-1">{title}</p>
+                <p className="text-xs text-slate-400 leading-relaxed">{body}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+    
+
     </div>
   );
 }
