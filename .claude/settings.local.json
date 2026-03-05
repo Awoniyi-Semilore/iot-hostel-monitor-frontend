@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install @tanstack/react-query zod)",
+      "Bash(npm install react-router-dom)",
+      "Bash(npm install recharts)"
+    ]
+  }
+}
