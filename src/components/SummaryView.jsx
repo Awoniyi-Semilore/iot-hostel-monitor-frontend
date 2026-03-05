@@ -66,7 +66,7 @@ export default function SummaryView() {
             {THRESHOLDS.map(({ label, range, color, bg }) => (
               <div key={label} className={`border rounded-2xl p-4 flex flex-col items-center justify-center gap-1.5 ${bg}`}>
                 <p className={`text-xs font-black ${color}`}>{label}</p>
-                <p className="text-[10px] text-slate-400 font-mono text-center leading-tight">{range}</p>
+                <p className="text-[10px] text-white font-mono text-center leading-tight">{range}</p>
               </div>
             ))}
           </div>
