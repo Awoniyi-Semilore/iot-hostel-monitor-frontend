@@ -58,3 +58,8 @@ export const CreateContactResponseSchema = z.object({
   success: z.literal(true),
   data: AlertContactSchema,
 });
+
+export const DeleteContactResponseSchema = z.object({
+  success: z.literal(true),
+  data: AlertContactSchema,
+});

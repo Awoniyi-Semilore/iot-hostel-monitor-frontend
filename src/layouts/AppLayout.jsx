@@ -1,4 +1,5 @@
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 import { Activity, BarChart2, Users, Info, Wind } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -19,6 +20,9 @@ const bottomNavClass = ({ isActive }) =>
   }`;
 
 export default function AppLayout() {
+  const { pathname } = useLocation();
+  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+
   return (
     <div className="min-h-screen bg-slate-950 text-white flex">
 

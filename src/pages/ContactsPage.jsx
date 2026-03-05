@@ -1,9 +1,51 @@
 import { useState } from 'react';
 import { useReadings } from '../queries/useReadings';
-import { useContacts, useCreateContact } from '../queries/useContacts';
-import { Users, Plus, Phone, User, Loader } from 'lucide-react';
+import { useContacts, useCreateContact, useDeleteContact } from '../queries/useContacts';
+import { Users, Plus, User, Loader, Trash2, AlertTriangle } from 'lucide-react';
 
-function ContactCard({ contact }) {
+function DeleteModal({ contact, onConfirm, onCancel, isPending }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onCancel} />
+      <div className="relative bg-slate-900 border border-white/10 rounded-3xl p-6 w-full max-w-sm space-y-4 shadow-2xl">
+        <div className="flex items-center gap-3">
+          <div className="bg-red-500/10 p-2.5 rounded-xl shrink-0">
+            <AlertTriangle size={18} className="text-red-400" />
+          </div>
+          <div>
+            <p className="text-sm font-black">Remove Contact?</p>
+            <p className="text-xs text-slate-500 mt-0.5">This will stop SMS alerts to this number.</p>
+          </div>
+        </div>
+
+        <div className="bg-white/5 rounded-2xl px-4 py-3">
+          <p className="text-sm font-bold">{contact.name ?? 'Unnamed'}</p>
+          <p className="text-xs text-slate-500 font-mono mt-0.5">{contact.phone}</p>
+        </div>
+
+        <div className="flex gap-3">
+          <button
+            onClick={onCancel}
+            disabled={isPending}
+            className="flex-1 bg-white/5 hover:bg-white/10 disabled:opacity-40 text-sm font-bold py-2.5 rounded-xl transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={isPending}
+            className="flex-1 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 disabled:opacity-40 text-red-400 text-sm font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 transition-colors"
+          >
+            {isPending ? <Loader size={14} className="animate-spin" /> : <Trash2 size={14} />}
+            {isPending ? 'Removing...' : 'Remove'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ContactCard({ contact, onDelete }) {
   return (
     <div className="bg-slate-900/40 border border-white/5 rounded-3xl p-4 flex items-center gap-4">
       <div className="bg-white/5 p-2.5 rounded-xl shrink-0">
@@ -13,6 +55,13 @@ function ContactCard({ contact }) {
         <p className="text-sm font-bold truncate">{contact.name ?? 'Unnamed'}</p>
         <p className="text-xs text-slate-500 font-mono mt-0.5">{contact.phone}</p>
       </div>
+      <button
+        onClick={() => onDelete(contact)}
+        className="p-2 rounded-xl text-slate-600 hover:text-red-400 hover:bg-red-500/10 transition-colors shrink-0"
+        aria-label="Remove contact"
+      >
+        <Trash2 size={15} />
+      </button>
     </div>
   );
 }
@@ -76,6 +125,14 @@ export default function ContactsPage() {
   const { data, isLoading, isError } = useContacts(location);
   const contacts = data?.data ?? [];
 
+  const [pendingDelete, setPendingDelete] = useState(null);
+  const { mutate: deleteContact, isPending: isDeleting } = useDeleteContact(location);
+
+  const handleDeleteConfirm = () => {
+    if (!pendingDelete) return;
+    deleteContact(pendingDelete.id, { onSuccess: () => setPendingDelete(null) });
+  };
+
   return (
     <div className="flex flex-col py-8 px-4 max-w-md w-full mx-auto space-y-6">
 
@@ -114,8 +171,19 @@ export default function ContactsPage() {
           </div>
         )}
 
-        {contacts.map((c) => <ContactCard key={c.id} contact={c} />)}
+        {contacts.map((c) => (
+          <ContactCard key={c.id} contact={c} onDelete={setPendingDelete} />
+        ))}
       </div>
+
+      {pendingDelete && (
+        <DeleteModal
+          contact={pendingDelete}
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => setPendingDelete(null)}
+          isPending={isDeleting}
+        />
+      )}
 
     </div>
   );

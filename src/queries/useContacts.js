@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '../lib/api';
-import { ContactsResponseSchema, CreateContactResponseSchema } from '../schemas/readings';
+import { ContactsResponseSchema, CreateContactResponseSchema, DeleteContactResponseSchema } from '../schemas/readings';
 
 async function fetchContacts(location) {
   const json = await apiFetch(`/contacts?location=${encodeURIComponent(location)}`);
@@ -29,6 +29,21 @@ export function useCreateContact() {
     mutationFn: createContact,
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['contacts', variables.location] });
+    },
+  });
+}
+
+async function deleteContact(id) {
+  const json = await apiFetch(`/contacts/${id}`, { method: 'DELETE' });
+  return DeleteContactResponseSchema.parse(json);
+}
+
+export function useDeleteContact(location) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteContact,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contacts', location] });
     },
   });
 }
