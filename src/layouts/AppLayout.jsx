@@ -33,8 +33,8 @@ export default function AppLayout() {
             <Wind size={18} className="text-white" />
           </div>
           <div>
-            <p className="text-xs font-black uppercase tracking-widest">AuraCheck</p>
-            <p className="text-[9px] text-slate-500 uppercase tracking-widest">v3.6</p>
+            <p className="text-xs font-black uppercase tracking-widest leading-tight">Smart Hostel<br />Hygiene Monitor</p>
+            <p className="text-[9px] text-slate-500 uppercase tracking-widest mt-0.5">AuraCheck</p>
           </div>
         </div>
 

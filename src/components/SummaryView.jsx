@@ -40,8 +40,8 @@ export default function SummaryView() {
       {/* Header */}
       <div>
         <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">About</p>
-        <h1 className="text-2xl md:text-3xl font-black italic uppercase tracking-tighter">Project AuraCheck</h1>
-        <p className="text-xs text-slate-500 mt-1">JAJA Hall · University of Lagos · Group 7</p>
+        <h1 className="text-2xl md:text-3xl font-black italic uppercase tracking-tighter">A Smart Hostel Hygiene Monitor</h1>
+        <p className="text-xs text-slate-500 mt-1">AuraCheck · JAJA Hall · University of Lagos · Group 7</p>
       </div>
 
       {/* Top section — 2 col on desktop */}
@@ -54,7 +54,7 @@ export default function SummaryView() {
           </p>
           <p className="text-sm text-slate-300 leading-relaxed">
             University hostel bathrooms are cleaned on fixed schedules regardless of actual usage.
-            AuraCheck monitors NH3 (ammonia) levels in real-time and sends SMS alerts when conditions
+            This system monitors NH3 (ammonia) levels in real-time and sends SMS alerts when conditions
             deteriorate, shifting maintenance from time-based to need-based.
           </p>
         </div>
@@ -90,11 +90,7 @@ export default function SummaryView() {
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="border border-white/5 rounded-2xl p-4 text-center space-y-1">
-        <p className="text-[9px] font-black uppercase tracking-widest text-slate-600">Deployed API</p>
-        <p className="text-xs font-mono text-slate-400">auracheck.fly.dev</p>
-      </div>
+    
 
     </div>
   );
